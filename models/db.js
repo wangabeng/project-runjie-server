@@ -28,7 +28,7 @@ exports.insertOne = (collectionName, json, callback) => {
 // json 是个对象 包含三个参数 {query: Object, limit: Number, skip: Number }
 exports.find = (collectionName, json, callback) => {
 	 _connectDB ((err, db) => {
-    db.collection(collectionName).find(json.query).limit(json.limit).skip(json.skip).toArray((err, result) => {
+    db.collection(collectionName).find(json.searchQuery).limit(json.limit).skip(json.skip).toArray((err, result) => {
 	 		callback(err, result);
 	 		db.close();
 	 	})
@@ -61,7 +61,7 @@ exports.updateMany = function (collectionName, json1, json2, callback) {
 // 分页的时候 获取所有数据数量
 exports.getAllCount = (collectionName, json, callback) => {
 	 _connectDB ((err, db) => {
-	 	db.collection(collectionName).find(json).count().then((result) => {
+	 	db.collection(collectionName).find(json.searchQuery).count().then((result) => {
 	 		callback(result);
 	 		db.close();
 	 	});
