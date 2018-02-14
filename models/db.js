@@ -48,7 +48,7 @@ exports.delete = (collectionName, json, callback) => {
 // 修改数据  json1是查询条件 json2是要修改的数据
 exports.updateMany = function (collectionName, json1, json2, callback) {
     _connectDB((err, db) => {
-        db.collection(collectionName).updateMany(
+        db.collection(collectionName).update(
             json1,
             json2,
             (err, result) => {

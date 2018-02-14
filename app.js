@@ -1,6 +1,19 @@
 var express = require('express');
 var app = express();
+
+var session = require('express-session');
+// 设置session基本配置
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: ('name', 'value', { path: '/', httpOnly: true,secure: false, maxAge:  36000000 })
+  /*,
+  cookie: { secure: true }*/
+}));
+
 var db = require('./models/db.js');
+var getRandomName = require('./models/getrandomname.js');
 
 // 导入数据库模块
 var MongoClient = require('mongodb').MongoClient
@@ -8,22 +21,74 @@ var MongoClient = require('mongodb').MongoClient
 // 增加一个中间件 设置访问权限 'Access-Control-Allow-Origin', 'http://localhost:8080' 只允许 'http://localhost:8080'访问
 app.use((req, res, next) => {
   // prod
-  res.setHeader('Access-Control-Allow-Origin', 'http://runjieapi.benkid.cn:80');
+  // res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn:80');
   // dev
   // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-  // res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Credentials', true);
-    // Request methods you wish to allow
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  // Request methods you wish to allow
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
-    // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  // Request headers you wish to allow
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
   next();
 });
 
 app.use(express.static('./static'));
 
-app.get('/insert', (req, res) => {
+// 设置session的username
+/*app.use((req, res, next) => {
+  if (!req.session.userName){
+    req.session.userUsername = getRandomName();
+  }
+  next();
+});*/
+
+// 设置userNameTitle
+app.get('/gettitle', (req, res, next) => {
+  // 如果session的title不存在 就设置
+  var collectionName = req.query.collectionName;
+  var title = req.query.title;
+  var json1 = {
+  searchQuery: {title: title},
+  curPage: 1,
+  limit: 1,
+  skip: 0
+  };
+  var pageView;
+  //if (!req.session.title) {
+    req.session.title = title;
+    // 然后根据集合名 和title查到这条数据 然后更新这条数据设置浏览量
+    db.find(collectionName, json1, (err, result) => {
+      if (err) {
+        console.log(err);
+        next();
+        return;
+      } else {
+        // 得到浏览量的数据
+        // 更新浏览量
+        console.log('result', result);
+        pageView = result[0].pageView;
+        console.log('pageView', pageView);
+        // res.send(result);
+        db.updateMany(collectionName, json1.searchQuery, {$set: {'pageView': ++pageView}}, (err, result) => {
+          if (err) {
+            console.log(err);
+            next();
+            return;
+          } else {
+            console.log('更新成功');
+            res.send(result);
+            return;
+          }
+        });
+      }
+    });
+  //}
+});
+
+// 插入数据
+app.get('/insert', (req, res, next) => {
   var json = { 
     "name" : "beben",
     'age': 133
@@ -32,6 +97,7 @@ app.get('/insert', (req, res) => {
   db.insertOne('class', json, (err, result) => {
     if (err) {
       console.log(err);
+      next();
       return;
     } else {
       console.log('插入成功');
@@ -80,7 +146,7 @@ app.get('/find', (req, res, next) => {
   })
 });
 
-
+// 删除
 app.get('/delete', (req, res, next) => {
   var json = { 
     "age" : parseInt(req.query['id'])
