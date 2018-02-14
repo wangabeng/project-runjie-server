@@ -6,9 +6,9 @@ var session = require('express-session');
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: true/*,
   cookie: ('name', 'value', { path: '/', httpOnly: true,secure: false, maxAge:  36000000 })
-  /*,
+  ,
   cookie: { secure: true }*/
 }));
 
@@ -37,27 +37,34 @@ app.use((req, res, next) => {
 app.use(express.static('./static'));
 
 // 设置session的username
-/*app.use((req, res, next) => {
+app.use('/test', (req, res, next) => {
+  console.log('req.session.username front', req.session.userName);
   if (!req.session.userName){
-    req.session.userUsername = getRandomName();
+    req.session.userName = getRandomName();
   }
+  console.log('req.session.username back', req.session.userName);
   next();
-});*/
+});
 
 // 设置userNameTitle
+// http://localhost:3009/gettitle?collectionName=news&title=ISO14000%E5%92%A8%E8%AF%A2
 app.get('/gettitle', (req, res, next) => {
+
   // 如果session的title不存在 就设置
   var collectionName = req.query.collectionName;
-  var title = req.query.title;
+  var title = decodeURI(req.query.title);
   var json1 = {
-  searchQuery: {title: title},
-  curPage: 1,
-  limit: 1,
-  skip: 0
+    searchQuery: {title: title},
+    curPage: 1,
+    limit: 1,
+    skip: 0
   };
   var pageView;
-  //if (!req.session.title) {
-    req.session.title = title;
+  // console.log('1 collectionName', collectionName);
+  // console.log('2 title', title);
+  // console.log('3 req.session.aaa', req.session[title]);
+  if (!req.session[title]) {
+    req.session[title] = title;
     // 然后根据集合名 和title查到这条数据 然后更新这条数据设置浏览量
     db.find(collectionName, json1, (err, result) => {
       if (err) {
@@ -67,9 +74,9 @@ app.get('/gettitle', (req, res, next) => {
       } else {
         // 得到浏览量的数据
         // 更新浏览量
-        console.log('result', result);
+        // console.log('result', result);
         pageView = result[0].pageView;
-        console.log('pageView', pageView);
+        console.log('5 pageView', pageView);
         // res.send(result);
         db.updateMany(collectionName, json1.searchQuery, {$set: {'pageView': ++pageView}}, (err, result) => {
           if (err) {
@@ -77,14 +84,17 @@ app.get('/gettitle', (req, res, next) => {
             next();
             return;
           } else {
-            console.log('更新成功');
+            console.log('6 更新成功');
             res.send(result);
             return;
           }
         });
       }
     });
-  //}
+  } else {
+    console.log(req.session[title]);
+    res.send('已经设置过了session');
+  }
 });
 
 // 插入数据
@@ -140,7 +150,7 @@ app.get('/find', (req, res, next) => {
       next();
       return;
     } else {
-      console.log('查询结果是:', result);
+      // console.log('查询结果是:', result);
       res.send(result);
     }
   })
