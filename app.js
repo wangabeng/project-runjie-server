@@ -21,7 +21,7 @@ var MongoClient = require('mongodb').MongoClient
 // 增加一个中间件 设置访问权限 'Access-Control-Allow-Origin', 'http://localhost:8080' 只允许 'http://localhost:8080'访问
 app.use((req, res, next) => {
   // prod
-  res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn:80');
+  res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn');
   // dev
   // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
   // res.setHeader('Access-Control-Allow-Origin', '*');
