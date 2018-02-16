@@ -28,7 +28,7 @@ exports.insertOne = (collectionName, json, callback) => {
 // json 是个对象 包含三个参数 {query: Object, limit: Number, skip: Number }
 exports.find = (collectionName, json, callback) => {
 	 _connectDB ((err, db) => {
-    db.collection(collectionName).find(json.searchQuery).limit(json.limit).skip(json.skip).toArray((err, result) => {
+    db.collection(collectionName).find(json.searchQuery).limit(json.limit).skip(json.skip).sort(json.sort).toArray((err, result) => {
 	 		callback(err, result);
 	 		db.close();
 	 	})

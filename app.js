@@ -6,8 +6,8 @@ var session = require('express-session');
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
-  saveUninitialized: true/*,
-  cookie: ('name', 'value', { path: '/', httpOnly: true,secure: false, maxAge:  36000000 })
+  saveUninitialized: true,
+  cookie: ('name', 'value', { path: '/', httpOnly: true,secure: false, maxAge:  36000000 })/*
   ,
   cookie: { secure: true }*/
 }));
@@ -21,10 +21,10 @@ var MongoClient = require('mongodb').MongoClient
 // 增加一个中间件 设置访问权限 'Access-Control-Allow-Origin', 'http://localhost:8080' 只允许 'http://localhost:8080'访问
 app.use((req, res, next) => {
   // prod
-  // res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn:80');
+  res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn:80');
   // dev
   // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Credentials', true);
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -36,17 +36,7 @@ app.use((req, res, next) => {
 
 app.use(express.static('./static'));
 
-// 设置session的username
-app.use('/test', (req, res, next) => {
-  console.log('req.session.username front', req.session.userName);
-  if (!req.session.userName){
-    req.session.userName = getRandomName();
-  }
-  console.log('req.session.username back', req.session.userName);
-  next();
-});
-
-// 设置userNameTitle
+// 设置页面浏览量计算
 // http://localhost:3009/gettitle?collectionName=news&title=ISO14000%E5%92%A8%E8%AF%A2
 app.get('/gettitle', (req, res, next) => {
 
@@ -135,12 +125,15 @@ app.get('/find', (req, res, next) => {
   var pageCapacity = parseInt(req.query.pageCapacity) || 1000;
   // 计算skip的值
   var skip = (curPage - 1) * pageCapacity;
+  // 排序
+  var sort = {[req.query.sort]: -1} || {};
   // json包含查询条件和分页信息
   var json = {
     searchQuery: searchQuery,
     curPage: curPage,
     limit: pageCapacity,
-    skip: skip
+    skip: skip,
+    sort: sort
   };
 
   // json 是个对象 包含三个参数 {query: Object, limit: Number, skip: Number }
