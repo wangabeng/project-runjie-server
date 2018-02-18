@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+var apiRoutes = express.Router();
 
 var session = require('express-session');
 // 设置session基本配置
@@ -19,11 +20,11 @@ var getRandomName = require('./models/getrandomname.js');
 var MongoClient = require('mongodb').MongoClient
 
 // 增加一个中间件 设置访问权限 'Access-Control-Allow-Origin', 'http://localhost:8080' 只允许 'http://localhost:8080'访问
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
   // prod
-  res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn');
+  // res.setHeader('Access-Control-Allow-Origin', 'http://runjie.benkid.cn');
   // dev
-  // res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
   // res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Credentials', true);
   // Request methods you wish to allow
@@ -32,13 +33,13 @@ app.use((req, res, next) => {
   // Request headers you wish to allow
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
   next();
-});
+});*/
 
 app.use(express.static('./static'));
 
 // 设置页面浏览量计算
 // http://localhost:3009/gettitle?collectionName=news&title=ISO14000%E5%92%A8%E8%AF%A2
-app.get('/gettitle', (req, res, next) => {
+apiRoutes.get('/gettitle', (req, res, next) => {
 
   // 如果session的title不存在 就设置
   var collectionName = req.query.collectionName;
@@ -88,7 +89,7 @@ app.get('/gettitle', (req, res, next) => {
 });
 
 // 插入数据
-app.get('/insert', (req, res, next) => {
+apiRoutes.get('/insert', (req, res, next) => {
   var json = { 
     "name" : "beben",
     'age': 133
@@ -113,7 +114,7 @@ app.get('/insert', (req, res, next) => {
 // http://localhost:3000/find?contentName=test&curPage=2&pageCapacity=5
 // 只传入集合名示例
 // http://localhost:3000/find
-app.get('/find', (req, res, next) => {
+apiRoutes.get('/find', (req, res, next) => {
   // contentName查询集合名 必须传入
   // 有 aboutus case certification news service
   var contentName = req.query.contentName;
@@ -150,7 +151,7 @@ app.get('/find', (req, res, next) => {
 });
 
 // 删除
-app.get('/delete', (req, res, next) => {
+apiRoutes.get('/delete', (req, res, next) => {
   var json = { 
     "age" : parseInt(req.query['id'])
     // "abeng" : '15'
@@ -171,7 +172,7 @@ app.get('/delete', (req, res, next) => {
 
 // 应用示例
 // http://localhost:3000/getcount?contentName=test
-app.get('/getcount', (req, res, next) => {
+apiRoutes.get('/getcount', (req, res, next) => {
   // contentName查询集合名 必须传入
   var contentName = req.query.contentName;
   // 用户是否传入查询调价 如果没有传入 默认为空对象{}
@@ -185,6 +186,8 @@ app.get('/getcount', (req, res, next) => {
     res.send(result.toString());
   }));
 });
+
+app.use('/api', apiRoutes);
 
 // 查询错误中间件
 app.use((req, res) => {
